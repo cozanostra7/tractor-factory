@@ -8,4 +8,4 @@ class TractorsOrm(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     model: Mapped[str] = mapped_column(String(100))
-    horse_power:Mapped[str] = mapped_column(String(3))
+    horse_power:Mapped[str] = mapped_column(String(10))

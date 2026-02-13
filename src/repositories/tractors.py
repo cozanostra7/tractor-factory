@@ -2,14 +2,18 @@ from sqlalchemy import select,func
 
 from src.repositories.base import BaseRepository
 from src.models import TractorsOrm
+from src.repositories.mappers.mapper import TractorMapper
+
 
 class TractorsRepository(BaseRepository):
     model = TractorsOrm
+    mapper = TractorMapper
+
 
     async def get_all_filtered(
         self,
         model: str | None,
-        horse_power: int | None,
+        horse_power: str | None,
         limit: int,
         offset: int,
     ):
@@ -23,7 +27,8 @@ class TractorsRepository(BaseRepository):
 
         if horse_power:
             query = query.filter(
-                TractorsOrm.horse_power == horse_power
+                func.lower(TractorsOrm.horse_power)
+                .contains(model.strip().lower())
             )
 
         query = query.limit(limit).offset(offset)

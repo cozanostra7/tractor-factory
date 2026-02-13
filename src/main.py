@@ -1,5 +1,5 @@
 import asyncio
-
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.openapi.docs import get_swagger_ui_html
 import uvicorn
@@ -8,9 +8,9 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
-
+from src.api.tractors import router as router_tractors
 app = FastAPI(docs_url=None)
-
+app.include_router(router_tractors)
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
     return get_swagger_ui_html(
@@ -24,4 +24,3 @@ async def custom_swagger_ui_html():
 
 if __name__=='__main__':
     uvicorn.run('main:app',reload=True,port=8004)
-    
