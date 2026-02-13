@@ -1,29 +1,32 @@
 from sqlalchemy import select,func
 
-from repositories.base import BaseRepository
+from src.repositories.base import BaseRepository
 from src.models import TractorsOrm
 
-
-class HotelsRepository(BaseRepository):
+class TractorsRepository(BaseRepository):
     model = TractorsOrm
 
-
-    async def get_all(
-            self,
-            model,
-            horse_power,
-            limit,
-            offset,):
+    async def get_all_filtered(
+        self,
+        model: str | None,
+        horse_power: int | None,
+        limit: int,
+        offset: int,
+    ):
         query = select(TractorsOrm)
-        if model:
-            query = query.filter(func.lower(TractorsOrm.model).contains(model.strip().lower()))
-        if horse_power:
-            query = query.filter(func.lower(TractorsOrm.horse_power).contains(horse_power.strip().lower()))
-        query = (
-            query
-            .limit(limit)
-            .offset(offset ))
-        print(query.compile(compile_kwargs={"literal_binds": True}))
-        result = await self.session.execute(query)
 
+        if model:
+            query = query.filter(
+                func.lower(TractorsOrm.model)
+                .contains(model.strip().lower())
+            )
+
+        if horse_power:
+            query = query.filter(
+                TractorsOrm.horse_power == horse_power
+            )
+
+        query = query.limit(limit).offset(offset)
+
+        result = await self.session.execute(query)
         return result.scalars().all()
