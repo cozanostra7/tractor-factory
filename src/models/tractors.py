@@ -7,5 +7,4 @@ class TractorsOrm(Base):
     __tablename__ ='tractors'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    model: Mapped[str] = mapped_column(String(100))
-    horse_power:Mapped[str] = mapped_column(String(10))
+    brand: Mapped[str] = mapped_column(String(100))

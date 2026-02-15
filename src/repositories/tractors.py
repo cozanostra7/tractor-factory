@@ -12,23 +12,16 @@ class TractorsRepository(BaseRepository):
 
     async def get_all_filtered(
         self,
-        model: str | None,
-        horse_power: str | None,
+        brand: str | None,
         limit: int,
         offset: int,
     ):
         query = select(TractorsOrm)
 
-        if model:
+        if brand:
             query = query.filter(
-                func.lower(TractorsOrm.model)
-                .contains(model.strip().lower())
-            )
-
-        if horse_power:
-            query = query.filter(
-                func.lower(TractorsOrm.horse_power)
-                .contains(model.strip().lower())
+                func.lower(TractorsOrm.brand)
+                .contains(brand.strip().lower())
             )
 
         query = query.limit(limit).offset(offset)

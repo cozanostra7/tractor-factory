@@ -2,8 +2,7 @@ from pydantic import BaseModel, Field,ConfigDict
 
 
 class TractorAdd(BaseModel):
-    model:str
-    horse_power:str
+    brand:str
 
 
 class Tractor(TractorAdd):
@@ -13,5 +12,4 @@ class Tractor(TractorAdd):
 
 
 class Tractor_patch(BaseModel):
-    model: str | None = Field(None),
-    horse_power: str | None = Field(None)
+    brand: str | None = Field(None),
