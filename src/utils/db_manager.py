@@ -1,4 +1,5 @@
 from src.repositories.tractors import TractorsRepository
+from src.repositories.brands import BrandsRepository
 
 
 class DBManager:
@@ -9,6 +10,7 @@ class DBManager:
     async def __aenter__(self):
         self.session = self.session_factory()
         self.tractors = TractorsRepository(self.session)
+        self.brands = BrandsRepository(self.session)
 
         return self
 
