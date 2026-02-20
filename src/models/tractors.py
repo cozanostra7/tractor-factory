@@ -8,3 +8,4 @@ class TractorsOrm(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     brand: Mapped[str] = mapped_column(String(100))
+
