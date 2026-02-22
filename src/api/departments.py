@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Body
+from fastapi import APIRouter, HTTPException, status, Query, Body
 
-from src.api.dependencies import get_db, get_department_or_404, DBDep
+from src.api.dependencies import get_department_or_404, DBDep
 from src.schemas.departments import (
     Department,
     DepartmentAdd,
     DepartmentPatch,
-    DepartmentWithStats,
+    DepartmentWithStats, DepartmentPatchRequest,
 )
-from src.schemas.employees import EmployeeListItem
+
 
 
 router = APIRouter(prefix="/departments", tags=["Departments"])
@@ -48,7 +48,7 @@ async def search_department_by_name(db:DBDep,
     )
 
 
-@router.get('/{departments_id}',response_model=DepartmentWithStats)
+@router.get('/{department_id}',response_model=DepartmentWithStats)
 async def show_a_department_by_id(db:DBDep,department_id:int):
     department = await get_department_or_404(department_id, db)
     employee_count = await db.departments.get_active_employees_count(department_id)
@@ -77,3 +77,45 @@ async def create_department(
     await db.commit()
 
     return {'status': 'Ok', "data": department}
+
+@router.patch('/{department_id}')
+async def modify_department(db:DBDep,department_id:int,department_info:DepartmentPatchRequest):
+    await get_department_or_404(department_id, db)
+
+    _department_info_dict = department_info.model_dump(exclude_unset=True)
+    if not _department_info_dict:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No fields to update"
+        )
+    if "name" in _department_info_dict:
+        existing = await db.departments.get_by_name(_department_info_dict['name'])
+        if existing and existing.id != department_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Department '{_department_info_dict['name']}' already exists"
+            )
+
+    _department_info = DepartmentPatchRequest(**_department_info_dict)
+
+    await db.departments.edit(
+        _department_info,
+        partially_edited=True,
+        id=department_id
+    )
+    await db.commit()
+    return {'status': 'Ok'}
+
+
+@router.delete('')
+async def delete_department(department_id:int,db:DBDep):
+    await get_department_or_404(department_id, db)
+    employee_count = await db.departments.get_active_employees_count(department_id)
+    if employee_count>0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete department with {employee_count} active employees."
+        )
+    await db.departments.delete(id=department_id)
+    await db.commit()
+    return {'status': 'Ok'}

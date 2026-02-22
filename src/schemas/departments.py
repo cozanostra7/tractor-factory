@@ -13,6 +13,10 @@ class Department(DepartmentAdd):
 
     model_config = ConfigDict(from_attributes=True)
 
+class DepartmentPatchRequest(BaseModel):
+    name: str | None = Field(None, max_length=100)
+    description: str | None = Field(None, max_length=300)
+
 class DepartmentPatch(BaseModel):
     name: str | None = None
     description: str | None = None
