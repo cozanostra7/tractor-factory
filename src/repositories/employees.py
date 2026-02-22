@@ -1,56 +1,75 @@
 from sqlalchemy import select
-
-from src.models import EmployeesOrm
-from src.repositories.base import BaseRepository
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from src.models import EmployeesOrm, EmployeeRole
 from src.repositories.mappers.base import DataMapper
 from src.repositories.mappers.mapper import EmployeesMapper
-from src.schemas.employees import EmployeesAdd, EmployeePatch
+from src.repositories.base import BaseRepository
 
 
-class EmployeesRepository(DataMapper):
+class EmployeesRepository(BaseRepository):
     model = EmployeesOrm
     mapper = EmployeesMapper
+    db_model = EmployeesOrm
+    schema = EmployeesMapper.schema
 
-    async def add(self, data: EmployeesAdd) -> EmployeesOrm:
-        employee = EmployeesOrm(**data.model_dump())
-        self.session.add(employee)
-        await self.session.flush()
-        return employee
 
-    # READ ONE
-    async def get_one(self, employee_id: int) -> EmployeesOrm | None:
-        result = await self.session.execute(
-            select(EmployeesOrm).where(EmployeesOrm.id == employee_id)
+
+    async def get_with_department(self, employee_id: int):
+        query = (
+            select(self.model)
+            .options(selectinload(self.model.department))
+            .filter_by(id=employee_id)
         )
+        result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
-    # READ ALL
-    async def get_all(self) -> list[EmployeesOrm]:
-        result = await self.session.execute(select(EmployeesOrm))
+    async def get_by_department(self, department_id: int, active_only: bool = True):
+        filters = {"department_id": department_id}
+        if active_only:
+            filters["is_active"] = True
+        return await self.get_all(**filters)
+
+    async def get_by_role(self, role: EmployeeRole, active_only: bool = True):
+        filters = {"role": role}
+        if active_only:
+            filters["is_active"] = True
+        return await self.get_all(**filters)
+
+    async def get_by_position(self, position: str, active_only: bool = True):
+        filters = {"position": position}
+        if active_only:
+            filters["is_active"] = True
+        return await self.get_all(**filters)
+
+    async def deactivate(self, employee_id: int):
+        return await self.edit(
+            {"is_active": False},
+            id=employee_id
+        )
+
+    async def activate(self, employee_id: int):
+        return await self.edit(
+            {"is_active": True},
+            id=employee_id
+        )
+
+    async def get_all_with_departments(self, active_only: bool = True):
+        query = select(self.model).options(selectinload(self.model.department))
+
+        if active_only:
+            query = query.filter_by(is_active=True)
+
+        result = await self.session.execute(query)
         return result.scalars().all()
 
-    # UPDATE (PATCH)
-    async def update(
-            self,
-            employee_id: int,
-            data: EmployeePatch
-    ) -> EmployeesOrm | None:
-        employee = await self.get_one(employee_id)
-        if not employee:
-            return None
+    async def search_by_name(self, name: str, active_only: bool = True):
+        query = select(self.model).filter(
+            self.model.full_name.ilike(f"%{name}%")
+        )
 
-        for key, value in data.model_dump(exclude_unset=True).items():
-            setattr(employee, key, value)
+        if active_only:
+            query = query.filter_by(is_active=True)
 
-        await self.session.flush()
-        return employee
-
-    async def deactivate(self, employee_id: int) -> bool:
-        employee = await self.get_one(employee_id)
-        if not employee:
-            return False
-
-        employee.is_active = False
-        await self.session.flush()
-        return True
+        result = await self.session.execute(query)
+        return result.scalars().all()

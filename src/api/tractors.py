@@ -25,13 +25,13 @@ async def get_tractors(tractor_id: int, db: DBDep):
 
 
 @router.post('')
-async def create_tractors(db:DBDep,hotel_info:TractorAdd = Body
+async def create_tractors(db:DBDep,tractor_info:TractorAdd = Body
     (openapi_examples=
      {'1':{'summary':'Tractors.Write the brand name ONLY!','value':{
     'brand':'Lovol',
 }}})):
 
-        tractor = await db.tractors.add(hotel_info)
+        tractor = await db.tractors.add(tractor_info)
         await db.commit()
         return {'status': 'Ok',"data":tractor}
 

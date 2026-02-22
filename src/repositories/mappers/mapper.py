@@ -1,4 +1,4 @@
-from src.models import TractorsOrm, BrandsOrm, DepartmentsOrm
+from src.models import TractorsOrm, BrandsOrm, DepartmentsOrm, EmployeesOrm
 from src.repositories.mappers.base import DataMapper
 from src.schemas.brands import Brand
 from src.schemas.departments import Department
@@ -20,5 +20,5 @@ class DepartmentsMapper(DataMapper):
     schema = Department
 
 class EmployeesMapper(DataMapper):
-    db_model = DepartmentsOrm
+    db_model = EmployeesOrm
     schema = Employees

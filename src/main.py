@@ -10,9 +10,11 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 from src.api.tractors import router as router_tractors
 from src.api.brands import router as router_brands
+from src.api.departments import router as router_departments
 app = FastAPI(docs_url=None)
 app.include_router(router_tractors)
 app.include_router(router_brands)
+app.include_router(router_departments)
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
     return get_swagger_ui_html(
