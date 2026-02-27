@@ -2,9 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Query, Body
 
 from src.api.dependencies import get_department_or_404, DBDep
 from src.schemas.departments import (
-    Department,
     DepartmentAdd,
-    DepartmentPatch,
     DepartmentWithStats, DepartmentPatchRequest,
 )
 

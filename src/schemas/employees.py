@@ -44,12 +44,12 @@ class EmployeePatch(BaseModel):
 
 
 class EmployeesWithDepartment(Employees):
-    """Employee with department details"""
+
     department: "Department"
 
 
 class EmployeeListItem(BaseModel):
-    """Simplified employee info for lists"""
+
     id: int
     full_name: str
     position: str

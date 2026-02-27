@@ -14,7 +14,6 @@ class EmployeesRepository(BaseRepository):
     schema = EmployeesMapper.schema
 
 
-
     async def get_with_department(self, employee_id: int):
         query = (
             select(self.model)
@@ -67,6 +66,15 @@ class EmployeesRepository(BaseRepository):
         query = select(self.model).filter(
             self.model.full_name.ilike(f"%{name}%")
         )
+
+        if active_only:
+            query = query.filter_by(is_active=True)
+
+        result = await self.session.execute(query)
+        return result.scalars().all()
+
+    async def get_all_employees(self, active_only: bool = True) -> list[EmployeesOrm]:
+        query = select(self.model)
 
         if active_only:
             query = query.filter_by(is_active=True)
