@@ -46,12 +46,20 @@ class BaseRepository:
         add_info_stmt = insert(self.model).values([item.model_dump() for item in data])
         await self.session.execute(add_info_stmt)
 
+    async def edit(self, data: dict | BaseModel, partially_edited: bool = False, **filter_by):
+        if isinstance(data, BaseModel):
+            if partially_edited:
+                update_data = data.model_dump(exclude_unset=True)
+            else:
+                update_data = data.model_dump()
+        else:
+            update_data = data
 
-    async def edit(self,data:BaseModel,partially_edited:bool = False,**filter_by) -> None:
         update_stmt = (
             update(self.model)
-                       .filter_by(**filter_by)
-                       .values(**data.model_dump(exclude_unset=partially_edited)))
+            .filter_by(**filter_by)
+            .values(**update_data)
+        )
         await self.session.execute(update_stmt)
 
     async def delete(self,**filter_by):
