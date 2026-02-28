@@ -5,12 +5,13 @@ from src.schemas.departments import (
     DepartmentAdd,
     DepartmentWithStats, DepartmentPatchRequest,
 )
-
+from fastapi_cache.decorator import cache
 
 
 router = APIRouter(prefix="/departments", tags=["Departments"])
 
 @router.get('', response_model=list[DepartmentWithStats])
+@cache(expire=10)
 async def show_departments(db: DBDep):
     departments = await db.departments.get_all_with_employee_count()
     return [
@@ -25,6 +26,7 @@ async def show_departments(db: DBDep):
 
 
 @router.get("/search", response_model=DepartmentWithStats)
+@cache(expire=10)
 async def search_department_by_name(db:DBDep,
         name: str = Query(..., description="Department name to search")
 ):
@@ -47,6 +49,7 @@ async def search_department_by_name(db:DBDep,
 
 
 @router.get('/{department_id}',response_model=DepartmentWithStats)
+@cache(expire=10)
 async def show_a_department_by_id(db:DBDep,department_id:int):
     department = await get_department_or_404(department_id, db)
     employee_count = await db.departments.get_active_employees_count(department_id)

@@ -6,11 +6,12 @@ from src.schemas.employees import (EmployeesAdd,
                                    EmployeesWithDepartment,
                                    EmployeeListItem,
                                    EmployeeRole)
-
+from fastapi_cache.decorator import cache
 
 router = APIRouter(prefix='/employees',tags=['Employees'])
 
 @router.get('',response_model=list[EmployeeListItem])
+@cache(expire=10)
 async def get_all_employees(db:DBDep,active_only:bool=Query(description='Return only active employees'),
                             department_id:int|None=Query(None,description='filter by department'),
                             role:EmployeeRole|None=Query(None,description='filter by role')):
@@ -25,6 +26,7 @@ async def get_all_employees(db:DBDep,active_only:bool=Query(description='Return 
     return employees
 
 @router.get('/search')
+@cache(expire=10)
 async def search_employees(db:DBDep,
                            name:str = Query(...,min_length=2,description='Search by name'),
                            active_only:bool=Query(True)):
@@ -33,6 +35,7 @@ async def search_employees(db:DBDep,
     return {'status': 'Ok','data':employees}
 
 @router.get('/{employee_id}')
+@cache(expire=10)
 async def get_single_employee(db:DBDep,employee_id:int):
     employee = await db.employees.get_with_department(employee_id)
 

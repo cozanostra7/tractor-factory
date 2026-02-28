@@ -6,13 +6,25 @@ import uvicorn
 
 import sys
 from pathlib import Path
+from init import redis_manager
+
 
 sys.path.append(str(Path(__file__).parent.parent))
 from src.api.tractors import router as router_tractors
 from src.api.brands import router as router_brands
 from src.api.departments import router as router_departments
 from src.api.employees import router as router_employees
-app = FastAPI(docs_url=None)
+
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+
+@asynccontextmanager
+async def lifespan(app:FastAPI):
+    await redis_manager.connect()
+    FastAPICache.init(RedisBackend(redis_manager.redis), prefix="fastapi-cache")
+    yield
+    await redis_manager.close()
+app = FastAPI(docs_url=None,lifespan=lifespan)
 app.include_router(router_tractors)
 app.include_router(router_brands)
 app.include_router(router_departments)

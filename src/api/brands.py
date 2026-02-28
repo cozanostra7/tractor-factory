@@ -1,5 +1,6 @@
-from Tools.scripts.nm2def import export_list
-from fastapi import Query,Body,APIRouter
+from fastapi import Query, Body, APIRouter, HTTPException
+from starlette import status
+from fastapi_cache.decorator import cache
 from src.api.dependencies import DBDep
 from src.schemas.brands import BrandAddRequest, BrandAdd, BrandPatch, BrandPatchRequest
 
@@ -7,6 +8,7 @@ router = APIRouter(prefix='/tractors',tags=['Brands'])
 
 
 @router.get('/{tractor_id}/brands')
+@cache(expire=10)
 async def show_all_brands(
         db:DBDep,
         tractor_id:int|None,
@@ -18,6 +20,7 @@ async def show_all_brands(
     )
 
 @router.get('/{tractor_id}/brands/{brand_id}')
+@cache(expire=10)
 async def get_brand(tractor_id:int,brand_id:int,db:DBDep):
     return await db.brands.get_one_or_none(id=brand_id,tractor_id=tractor_id)
 
@@ -43,6 +46,12 @@ async def edit_brands(tractor_id:int,brand_id:int,
 
 @router.patch('/{tractor_id}/brands/{brand_id}')
 async def partially_edit(tractor_id:int,brand_id:int,brand_info:BrandPatchRequest,db:DBDep):
+    existing = await db.brands.get_one_or_none(id=brand_id)
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Brand with id {brand_id} in tractor with ID {tractor_id} not found"
+        )
     _brand_info_dict = brand_info.model_dump(exclude_unset=True)
     _brand_info = BrandPatch(tractor_id=tractor_id,**_brand_info_dict)
     await db.brands.edit(_brand_info,partially_edited=True,id=brand_id,tractor_id=tractor_id)
