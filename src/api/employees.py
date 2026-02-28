@@ -32,3 +32,5 @@ async def hire_employee(db:DBDep,employee_data:EmployeesAdd):
     await get_department_or_404(employee_data.department_id,db)
     employee = await db.employees.add(employee_data)
     await db.commit()
+
+    return employee
